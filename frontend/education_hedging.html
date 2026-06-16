@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hedging & Diversification - CapitalFlowAi</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="toastContainer" class="toast-container"></div>
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="spinner"></div>
+        <div id="loaderText" class="loader-text">Loading guide...</div>
+    </div>
+
+    <div class="app-container">
+        <!-- Navigation bar -->
+        <header>
+            <nav class="navbar" id="mainNavbar">
+                <a href="/" class="brand">
+                    <span class="brand-icon">⇄</span>
+                    <span class="brand-name">Capital<span>Flow.Ai</span></span>
+                </a>
+                <ul class="nav-links">
+                    <li class="nav-item"><a href="/">Dashboard</a></li>
+                    <li class="nav-item"><a href="/daily">Daily Analysis</a></li>
+                    <li class="nav-item"><a href="/monthly">Monthly Analysis</a></li>
+                    <li class="nav-item"><a href="/archive/daily">Daily Historical Report</a></li>
+                    <li class="nav-item"><a href="/archive/monthly">Monthly Historical Report</a></li>
+                    <li class="nav-item active"><a href="/education">Education</a></li>
+                </ul>
+                <button class="sync-btn" id="headerSyncBtn" title="Sync latest market data">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Sync Today's Data
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <a href="/education" class="overview-banner-btn" style="margin-bottom: 24px; display: inline-block;">← Back to Education Hub</a>
+            
+            <div class="glass-card ai-report-container">
+                <div class="ai-report-content" id="educationContentArea">
+                    Loading Hedging & Diversification guide...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/app.js"></script>
+    <script>
+        async function fetchGuide() {
+            showLoader("Loading hedging guide...");
+            try {
+                const response = await fetch('/api/education');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    const mdContent = result.content.hedging_guide;
+                    document.getElementById('educationContentArea').innerHTML = markdownToHtml(mdContent);
+                } else {
+                    showToast("Failed to fetch educational articles", "error");
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("Network error fetching guides", "error");
+            } finally {
+                hideLoader();
+            }
+        }
+        window.addEventListener('DOMContentLoaded', fetchGuide);
+    </script>
+</body>
+</html>

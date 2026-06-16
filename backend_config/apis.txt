@@ -1,0 +1,339 @@
+One important thing before your reusable draft: you shared your actual Twelve Data API key and Upstox bearer token in this chat. You should revoke/regenerate them and store the new values in .env rather than keeping them in apis.txt.
+
+API CONFIGURATION
+
+General Rules
+
+- Read the Twelve Data API key from ".env" using "TWELVE_DATA_API_KEY".
+- Read the Upstox bearer token from ".env" using "UPSTOX_BEARER_TOKEN".
+- Never hardcode secrets.
+- Call each endpoint exactly once during every scheduled run.
+- Store market data into Table 1 ("market_data").
+- Store institutional flow data into Table 4 ("fii_dii_flow").
+
+---
+
+
+
+Twelve Data APIs
+
+Use the following endpoints.
+
+NIFTY 50
+
+Endpoint
+
+https://api.twelvedata.com/quote?symbol=NIFTY&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+S&P 500
+
+https://api.twelvedata.com/quote?symbol=SPX&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+NASDAQ
+
+https://api.twelvedata.com/quote?symbol=IXIC&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Shanghai Composite
+
+https://api.twelvedata.com/quote?symbol=000001&exchange=SSE&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Nikkei 225
+
+https://api.twelvedata.com/quote?symbol=N225&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Taiwan
+
+https://api.twelvedata.com/quote?symbol=TAIEX&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+FTSE 100
+
+https://api.twelvedata.com/quote?symbol=FTSE&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+CAC 40
+
+https://api.twelvedata.com/quote?symbol=PX1&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+STOXX Europe
+
+https://api.twelvedata.com/quote?symbol=SXXP&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Gold
+
+https://api.twelvedata.com/quote?symbol=XAU/USD&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Silver
+
+https://api.twelvedata.com/quote?symbol=XAG/USD&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Copper
+
+https://api.twelvedata.com/quote?symbol=HG=F&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Brent Crude Oil
+
+https://api.twelvedata.com/quote?symbol=BZ=F&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Bitcoin
+
+https://api.twelvedata.com/quote?symbol=BTC/USD&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+Ethereum
+
+https://api.twelvedata.com/quote?symbol=ETH/USD&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+US 10Y Bond Yield
+
+https://api.twelvedata.com/quote?symbol=ZN=F&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+DXY
+
+https://api.twelvedata.com/quote?symbol=DXY&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+USD/INR
+
+https://api.twelvedata.com/quote?symbol=USD/INR&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+VIX
+
+https://api.twelvedata.com/quote?symbol=VIX&apikey=${TWELVE_DATA_API_KEY}
+
+---
+
+For EVERY Twelve Data response
+
+Example response:
+
+{
+    symbol,
+    name,
+    exchange,
+    mic_code,
+    datetime,
+    timestamp,
+    datetime_gmt,
+    open,
+    high,
+    low,
+    close,
+    previous_close,
+    change,
+    percent_change,
+    is_market_open
+}
+
+Store ONLY these fields into Table 1 ("market_data"):
+
+- "date = datetime"
+- "index_name = name"
+- "price = close"
+- "percent_change = percent_change"
+- "status ="
+  - ""OPEN"" if "is_market_open == true"
+  - ""CLOSED"" if "is_market_open == false"
+
+Ignore:
+
+- symbol
+- exchange
+- mic_code
+- timestamp
+- datetime_gmt
+- open
+- high
+- low
+- previous_close
+- change
+
+---
+
+FII API
+
+Endpoint
+
+https://api.upstox.com/v2/market/fii?data_type=NSE_EQ%7CCASH&interval=1D
+
+Headers
+
+Accept: application/json
+
+Authorization:
+Bearer ${UPSTOX_BEARER_TOKEN}
+
+Example response
+
+{
+    status,
+    data:[
+        {
+            date,
+            data_type,
+            buy_value,
+            sell_value,
+            net_value
+        }
+    ]
+}
+
+Store ONLY:
+
+- "date = data[0].date"
+- "fii_netflow = data[0].net_value"
+
+Ignore:
+
+- status
+- data_type
+- buy_value
+- sell_value
+
+---
+
+DII API
+
+Endpoint
+
+https://api.upstox.com/v2/market/dii?data_type=NSE_EQ%7CCASH&interval=1D
+
+Headers
+
+Accept: application/json
+
+Authorization:
+Bearer ${UPSTOX_BEARER_TOKEN}
+
+Example response
+
+{
+    status,
+    data:[
+        {
+            date,
+            data_type,
+            buy_value,
+            sell_value,
+            net_value
+        }
+    ]
+}
+
+Store ONLY:
+
+- "date = data[0].date"
+- "dii_netflow = data[0].net_value"
+
+Ignore:
+
+- status
+- data_type
+- buy_value
+- sell_value
+
+---
+
+Populate Table 4 ("fii_dii_flow")
+
+After both API calls:
+
+Calculate
+
+total_netflow = fii_netflow + dii_netflow
+
+Store ONLY:
+
+- date
+- fii_netflow
+- dii_netflow
+- total_netflow
+
+
+Upstox API Request Instructions
+
+For all FII and DII API calls:
+
+- Do NOT append the bearer token to the URL.
+- Read the bearer token from ".env" using:
+
+"UPSTOX_BEARER_TOKEN"
+
+The request must be sent using HTTP headers.
+
+Example:
+
+import requests
+
+url = "https://api.upstox.com/v2/market/dii?data_type=NSE_EQ%7CCASH&interval=1D"
+
+headers = {
+    "Accept": "application/json",
+    "Authorization": f"Bearer {UPSTOX_BEARER_TOKEN}"
+}
+
+response = requests.get(url, headers=headers)
+
+Similarly, for the FII endpoint:
+
+import requests
+
+url = "https://api.upstox.com/v2/market/fii?data_type=NSE_EQ%7CCASH&interval=1D"
+
+headers = {
+    "Accept": "application/json",
+    "Authorization": f"Bearer {UPSTOX_BEARER_TOKEN}"
+}
+
+response = requests.get(url, headers=headers)
+
+Rules:
+
+- Always read the bearer token from ".env".
+- Never hardcode the bearer token.
+- Never place the bearer token inside the URL.
+- Always send it using the "Authorization" header in the format:
+
+"Authorization: Bearer <UPSTOX_BEARER_TOKEN>"
+
+- Parse the JSON response and extract only the required fields for Table 4 ("fii_dii_flow"):
+  - "date"
+  - "fii_netflow"
+  - "dii_netflow"
+  - "total_netflow = fii_netflow + dii_netflow"
+
+
+
+Do not store any additional fields.

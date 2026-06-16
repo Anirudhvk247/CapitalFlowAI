@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Market Analysis - CapitalFlowAi</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="toastContainer" class="toast-container"></div>
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="spinner"></div>
+        <div id="loaderText" class="loader-text">Loading daily metrics...</div>
+    </div>
+
+    <div class="app-container">
+        <!-- Navigation bar -->
+        <header>
+            <nav class="navbar" id="mainNavbar">
+                <a href="/" class="brand">
+                    <span class="brand-icon">⇄</span>
+                    <span class="brand-name">Capital<span>Flow.Ai</span></span>
+                </a>
+                <ul class="nav-links">
+                    <li class="nav-item"><a href="/">Dashboard</a></li>
+                    <li class="nav-item active"><a href="/daily">Daily Analysis</a></li>
+                    <li class="nav-item"><a href="/monthly">Monthly Analysis</a></li>
+                    <li class="nav-item"><a href="/archive/daily">Daily Historical Report</a></li>
+                    <li class="nav-item"><a href="/archive/monthly">Monthly Historical Report</a></li>
+                    <li class="nav-item"><a href="/education">Education</a></li>
+                </ul>
+                <button class="sync-btn" id="headerSyncBtn" title="Sync latest market data">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Sync Today's Data
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <h1 style="margin-bottom: 24px;">Daily Market Analysis: <span id="dailyDateTitle" style="color: #6366f1; background: none; -webkit-text-fill-color: initial;">--/--/----</span></h1>
+            
+            <!-- Selector Controls Bar -->
+            <div class="controls-bar" style="margin-bottom: 24px;">
+                <div class="selector-group">
+                    <span class="selector-label">Choose Timeline Timeframe:</span>
+                    <select id="timeframeSelector" class="custom-select">
+                        <option value="7">1 Week</option>
+                        <option value="30" selected>1 Month</option>
+                        <option value="180">6 Months</option>
+                        <option value="365">1 Year</option>
+                    </select>
+                </div>
+            </div>
+            
+            <h2 id="sparklinesTitle" style="font-size: 18px; margin-bottom: 16px; color: var(--color-text-secondary);">Asset Performance & Timeline Trends (Last Month)</h2>
+            <div class="dashboard-grid" id="dailySparklinesGrid">
+                <!-- 21 Ticker line charts populated dynamically -->
+            </div>
+
+            <div class="dashboard-grid" style="margin-top: 24px;">
+                <!-- Daily AI Intelligence Report -->
+                <div class="col-12 glass-card ai-report-container">
+                    <h2><span style="font-size: 22px;">✦</span> AI Daily Market Intelligence Report</h2>
+                    <hr style="border-color: rgba(255, 255, 255, 0.05); margin: 16px 0;">
+                    <div class="ai-report-content" id="dailyReportContent">
+                        Loading Daily report...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/app.js"></script>
+    <script>
+        function renderAllSparklines(dates, assets, marketData, flowData, gridId) {
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            // Sort keys: Equities first, then Commodities, Cryptos, Currencies, and Flows last
+            const keys = Object.keys(assets).sort((a, b) => {
+                const aIsFlow = a.includes("Flow");
+                const bIsFlow = b.includes("Flow");
+                if (aIsFlow && !bIsFlow) return 1;
+                if (!aIsFlow && bIsFlow) return -1;
+                return a.localeCompare(b);
+            });
+            
+            keys.forEach((name, idx) => {
+                const history = assets[name];
+                if (!history || history.length === 0) return;
+                
+                // Get latest price, change, status
+                let latestVal = history[history.length - 1];
+                let pctChange = 0.0;
+                let status = "OPEN";
+                
+                if (name.includes("Flow")) {
+                    if (name === "FII Net Flow") {
+                        latestVal = flowData ? flowData.fii_netflow : latestVal;
+                    } else if (name === "DII Net Flow") {
+                        latestVal = flowData ? flowData.dii_netflow : latestVal;
+                    } else if (name === "Total Net Flow") {
+                        latestVal = flowData ? flowData.total_netflow : latestVal;
+                    }
+                    status = "CLOSED";
+                } else {
+                    const mItem = marketData.find(item => item.index_name === name);
+                    if (mItem) {
+                        pctChange = mItem.percent_change;
+                        latestVal = mItem.price;
+                        status = mItem.status;
+                    }
+                }
+                
+                const isUp = name.includes("Flow") ? (latestVal >= 0) : (pctChange >= 0);
+                const formattedVal = formatTickerValue(name, latestVal);
+                const formattedChange = name.includes("Flow") ? "" : `${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%`;
+                
+                const cardCol = document.createElement('div');
+                cardCol.className = 'col-4 glass-card';
+                cardCol.style.padding = '16px';
+                cardCol.style.display = 'flex';
+                cardCol.style.flexDirection = 'column';
+                cardCol.style.justifyContent = 'space-between';
+                
+                const canvasId = `daily_canvas_${idx}`;
+                
+                cardCol.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="ticker-name" style="font-size: 14px; font-weight: 700; color: #ffffff;" title="${name}">${name}</span>
+                        <span class="ticker-status ${status.toLowerCase()}">${status}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+                        <span style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: #f3f4f6;">${formattedVal}</span>
+                        <span class="ticker-change ${isUp ? 'up' : 'down'}" style="font-size: 13px; font-weight: 700;">${formattedChange}</span>
+                    </div>
+                    <div class="chart-container" style="height: 110px;">
+                        <canvas id="${canvasId}"></canvas>
+                    </div>
+                `;
+                
+                grid.appendChild(cardCol);
+                
+                // Draw sparkline
+                setTimeout(() => {
+                    const canvasElement = document.getElementById(canvasId);
+                    if (!canvasElement) return;
+                    
+                    const ctx = canvasElement.getContext('2d');
+                    
+                    const lineColor = isUp ? 'rgba(52, 211, 153, 1)' : 'rgba(248, 113, 113, 1)';
+                    const gradientBg = ctx.createLinearGradient(0, 0, 0, 100);
+                    gradientBg.addColorStop(0, isUp ? 'rgba(52, 211, 153, 0.15)' : 'rgba(248, 113, 113, 0.15)');
+                    gradientBg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: name,
+                                data: history,
+                                borderColor: lineColor,
+                                borderWidth: 2,
+                                backgroundColor: gradientBg,
+                                fill: true,
+                                tension: 0.15,
+                                pointRadius: 0,
+                                pointHoverRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(17, 25, 40, 0.95)',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1,
+                                    padding: 8,
+                                    cornerRadius: 6,
+                                    titleFont: { family: 'Outfit', size: 10 },
+                                    bodyFont: { family: 'Plus Jakarta Sans', size: 10 },
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${name}: ${formatTickerValue(name, context.parsed.y)}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: {
+                                        color: '#6b7280',
+                                        font: { family: 'Plus Jakarta Sans', size: 8 },
+                                        maxTicksLimit: 3
+                                    }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.02)' },
+                                    ticks: {
+                                        color: '#6b7280',
+                                        font: { family: 'Plus Jakarta Sans', size: 8 },
+                                        maxTicksLimit: 3
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }, 40);
+            });
+        }
+
+        async function loadPageData() {
+            const timeframeSelector = document.getElementById('timeframeSelector');
+            const days = timeframeSelector ? timeframeSelector.value : 30;
+            
+            let timeframeName = "Last Month";
+            if (days === "7") timeframeName = "Last 1 Week";
+            else if (days === "30") timeframeName = "Last 1 Month";
+            else if (days === "180") timeframeName = "Last 6 Months";
+            else if (days === "365") timeframeName = "Last 1 Year";
+            
+            const titleElement = document.getElementById('sparklinesTitle');
+            if (titleElement) {
+                titleElement.textContent = `Asset Performance & Timeline Trends (${timeframeName})`;
+            }
+
+            showLoader("Loading today's macro timelines...");
+            try {
+                const response = await fetch(`/api/data/today?days=${days}`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Update Title Date
+                    document.getElementById('dailyDateTitle').textContent = result.date;
+                    
+                    // Render 21 sparklines
+                    if (result.history_timeline && result.history_timeline.assets) {
+                        renderAllSparklines(
+                            result.history_timeline.dates,
+                            result.history_timeline.assets,
+                            result.market_data,
+                            result.fii_dii_flow,
+                            'dailySparklinesGrid'
+                        );
+                    }
+                    
+                    // Render AI Report
+                    const reportHtml = markdownToHtml(result.daily_report);
+                    document.getElementById('dailyReportContent').innerHTML = reportHtml;
+                } else {
+                    showToast(result.message, 'info');
+                }
+            } catch (e) {
+                console.error("Error loading daily analysis page:", e);
+                showToast("Failed to load daily timelines. Click sync.", "error");
+            } finally {
+                hideLoader();
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const selector = document.getElementById('timeframeSelector');
+            if (selector) {
+                selector.addEventListener('change', loadPageData);
+            }
+            loadPageData();
+        });
+    </script>
+</body>
+</html>

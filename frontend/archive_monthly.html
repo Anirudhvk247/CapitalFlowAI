@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Historical Report - CapitalFlowAi</title>
+    <link rel="stylesheet" href="/styles.css">
+    <!-- Flatpickr CSS & MonthSelect Plugin CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+</head>
+<body>
+    <div id="toastContainer" class="toast-container"></div>
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="spinner"></div>
+        <div id="loaderText" class="loader-text">Loading historical monthly analysis...</div>
+    </div>
+
+    <div class="app-container">
+        <!-- Navigation bar -->
+        <header>
+            <nav class="navbar" id="mainNavbar">
+                <a href="/" class="brand">
+                    <span class="brand-icon">⇄</span>
+                    <span class="brand-name">Capital<span>Flow.Ai</span></span>
+                </a>
+                <ul class="nav-links">
+                    <li class="nav-item"><a href="/">Dashboard</a></li>
+                    <li class="nav-item"><a href="/daily">Daily Analysis</a></li>
+                    <li class="nav-item"><a href="/monthly">Monthly Analysis</a></li>
+                    <li class="nav-item"><a href="/archive/daily">Daily Historical Report</a></li>
+                    <li class="nav-item active"><a href="/archive/monthly">Monthly Historical Report</a></li>
+                    <li class="nav-item"><a href="/education">Education</a></li>
+                </ul>
+                <button class="sync-btn" id="headerSyncBtn" title="Sync latest market data">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Sync Today's Data
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <h1 style="margin-bottom: 8px;">Monthly Historical Report</h1>
+            <p class="color-text-secondary" style="font-size: 14px; margin-bottom: 24px; line-height: 1.6;">
+                💡 <strong>Guidance</strong>: Choose a particular month and year from the calendar selector below to retrieve that month's aggregated trends. Clicking "Fetch Monthly Report" will load monthly asset fluctuations and the stored Monthly AI Research report directly from SQL (no external APIs are called or wasted).
+            </p>
+
+            <!-- Selector Controls Bar -->
+            <div class="controls-bar">
+                <div class="selector-group">
+                    <span class="selector-label">Choose Target Month:</span>
+                    <input type="month" id="archiveMonthInput" class="custom-date-input">
+                </div>
+                <button class="sync-btn" id="loadMonthlyArchiveBtn" style="background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); box-shadow: none;">
+                    Fetch Monthly Report
+                </button>
+            </div>
+
+            <!-- Dashboard display for picked date -->
+            <div id="monthlyArchiveDisplayArea" style="display: none;">
+                <h1 style="margin-bottom: 24px; font-size: 24px;">Market Analysis for <span id="archiveMonthlyTitle" style="color: #6366f1; background: none; -webkit-text-fill-color: initial;">--/----</span></h1>
+                
+                <div class="dashboard-grid">
+                    <!-- Key asset trends line chart -->
+                    <div class="col-12 glass-card">
+                        <h2>Key Global Assets Trend (Normalized Multi-axis)</h2>
+                        <div class="chart-container" style="height: 380px;">
+                            <canvas id="archiveMonthlyAssetsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- FII/DII flow trends line chart -->
+                    <div class="col-12 glass-card">
+                        <h2>Institutional Net Flows Trend (Cr)</h2>
+                        <div class="chart-container" style="height: 320px;">
+                            <canvas id="archiveMonthlyFlowsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Monthly AI report -->
+                    <div class="col-12 glass-card ai-report-container">
+                        <h2><span style="font-size: 22px;">✦</span> AI Monthly Macro Research Report</h2>
+                        <hr style="border-color: rgba(255, 255, 255, 0.05); margin: 16px 0;">
+                        <div class="ai-report-content" id="archiveMonthlyReportContent">
+                            Loading Monthly Macro Report...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="noMonthlyArchivePlaceholder" class="glass-card" style="text-align: center; padding: 48px 24px;">
+                <p class="color-text-secondary" style="font-style: italic; font-size: 15px;">
+                    Please select a month and year from the calendar above and click "Fetch Monthly Report" to load historical data.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Flatpickr JS & MonthSelect Plugin JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="/app.js"></script>
+    <script>
+        async function fetchMonthlyArchive() {
+            const monthInput = document.getElementById('archiveMonthInput');
+            const val = monthInput.value;
+            if (!val) {
+                showToast("Please select a valid month.", "error");
+                return;
+            }
+            
+            const parts = val.split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]);
+            
+            const monthName = new Date(year, month - 1, 1).toLocaleString('default', { month: 'long' });
+            showLoader(`Retrieving monthly review for ${monthName} ${year}...`);
+            
+            try {
+                const response = await fetch(`/api/data/archive/monthly?month=${month}&year=${year}`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Show area
+                    document.getElementById('noMonthlyArchivePlaceholder').style.display = 'none';
+                    document.getElementById('monthlyArchiveDisplayArea').style.display = 'block';
+                    
+                    // Update Title Date
+                    document.getElementById('archiveMonthlyTitle').textContent = `${monthName} ${year}`;
+                    
+                    // Render Monthly Charts
+                    if (result.charts) {
+                        if (result.charts.assets) renderChart('archiveMonthlyAssetsChart', result.charts.assets, 'line');
+                        if (result.charts.flows) renderChart('archiveMonthlyFlowsChart', result.charts.flows, 'line');
+                    }
+                    
+                    // Render Monthly AI Report
+                    const reportHtml = markdownToHtml(result.monthly_report);
+                    document.getElementById('archiveMonthlyReportContent').innerHTML = reportHtml;
+                    
+                    showToast(`Loaded review for ${monthName} ${year}`, 'success');
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                console.error("Error fetching monthly archive:", e);
+                showToast("Failed loading monthly archive. Ensure data was stored during this month.", "error");
+            } finally {
+                hideLoader();
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loadMonthlyArchiveBtn').addEventListener('click', fetchMonthlyArchive);
+        });
+    </script>
+</body>
+</html>

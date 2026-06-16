@@ -1,0 +1,7 @@
+flask
+apscheduler
+requests
+python-dotenv
+yfinance
+google-genai
+psycopg2-binary

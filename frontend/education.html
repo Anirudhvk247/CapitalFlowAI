@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investor Education Hub - CapitalFlowAi</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="toastContainer" class="toast-container"></div>
+    <div class="app-container">
+        <!-- Navigation bar -->
+        <header>
+            <nav class="navbar" id="mainNavbar">
+                <a href="/" class="brand">
+                    <span class="brand-icon">⇄</span>
+                    <span class="brand-name">Capital<span>Flow.Ai</span></span>
+                </a>
+                <ul class="nav-links">
+                    <li class="nav-item"><a href="/">Dashboard</a></li>
+                    <li class="nav-item"><a href="/daily">Daily Analysis</a></li>
+                    <li class="nav-item"><a href="/monthly">Monthly Analysis</a></li>
+                    <li class="nav-item"><a href="/archive/daily">Daily Historical Report</a></li>
+                    <li class="nav-item"><a href="/archive/monthly">Monthly Historical Report</a></li>
+                    <li class="nav-item active"><a href="/education">Education</a></li>
+                </ul>
+                <button class="sync-btn" id="headerSyncBtn" title="Sync latest market data">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Sync Today's Data
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <h1 style="margin-bottom: 12px;">Investor Education Hub</h1>
+            <p class="color-text-secondary" style="margin-bottom: 32px; font-size: 15px; max-width: 600px;">
+                Learn how global capital behaves, identify key macroeconomic triggers, and discover how to construct international portfolios.
+            </p>
+            
+            <div class="dashboard-grid">
+                <!-- Guide 1: Markets Explained -->
+                <div class="col-6 glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <span style="font-size: 32px; margin-bottom: 12px; display: block;">📈</span>
+                        <h2 style="font-size: 20px; margin-bottom: 8px;">Markets Explained</h2>
+                        <p class="color-text-secondary" style="font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
+                            Understand all 21 key financial indices, commodities, currencies, cryptos, and institutional flows tracked by CapitalFlowAI.
+                        </p>
+                    </div>
+                    <a href="/education/markets-explained" class="overview-banner-btn" style="text-align: center; width: 100%;">Explore Tickers Guide</a>
+                </div>
+
+                <!-- Guide 2: How Indians Invest Globally -->
+                <div class="col-6 glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <span style="font-size: 32px; margin-bottom: 12px; display: block;">🌍</span>
+                        <h2 style="font-size: 20px; margin-bottom: 8px;">How Indians Invest Globally</h2>
+                        <p class="color-text-secondary" style="font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
+                            Explore direct LRS routes, domestic international ETFs, tax structures, and fintech platforms like INDmoney.
+                        </p>
+                    </div>
+                    <a href="/education/invest-globally" class="overview-banner-btn" style="text-align: center; width: 100%;">Explore Investing Guide</a>
+                </div>
+
+                <!-- Guide 3: Macro Events Guide -->
+                <div class="col-6 glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <span style="font-size: 32px; margin-bottom: 12px; display: block;">🏛️</span>
+                        <h2 style="font-size: 20px; margin-bottom: 8px;">Macro Events Guide</h2>
+                        <p class="color-text-secondary" style="font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
+                            See how central bank interest rates, inflation data, GDP, and elections impact stock valuations and capital flows.
+                        </p>
+                    </div>
+                    <a href="/education/macro-events" class="overview-banner-btn" style="text-align: center; width: 100%;">Explore Macro Guide</a>
+                </div>
+
+                <!-- Guide 4: Hedging & Diversification -->
+                <div class="col-6 glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <span style="font-size: 32px; margin-bottom: 12px; display: block;">🛡️</span>
+                        <h2 style="font-size: 20px; margin-bottom: 8px;">Hedging & Diversification</h2>
+                        <p class="color-text-secondary" style="font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
+                            Master portfolio diversification ratios and risk mitigation using hedges like Gold during macroeconomic crises.
+                        </p>
+                    </div>
+                    <a href="/education/hedging-diversification" class="overview-banner-btn" style="text-align: center; width: 100%;">Explore Risk Guide</a>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="/app.js"></script>
+</body>
+</html>

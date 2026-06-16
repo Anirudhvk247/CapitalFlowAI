@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Macro Review - CapitalFlowAi</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="toastContainer" class="toast-container"></div>
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="spinner"></div>
+        <div id="loaderText" class="loader-text">Loading monthly review...</div>
+    </div>
+
+    <div class="app-container">
+        <!-- Navigation bar -->
+        <header>
+            <nav class="navbar" id="mainNavbar">
+                <a href="/" class="brand">
+                    <span class="brand-icon">⇄</span>
+                    <span class="brand-name">Capital<span>Flow.Ai</span></span>
+                </a>
+                <ul class="nav-links">
+                    <li class="nav-item"><a href="/">Dashboard</a></li>
+                    <li class="nav-item"><a href="/daily">Daily Analysis</a></li>
+                    <li class="nav-item active"><a href="/monthly">Monthly Analysis</a></li>
+                    <li class="nav-item"><a href="/archive/daily">Daily Historical Report</a></li>
+                    <li class="nav-item"><a href="/archive/monthly">Monthly Historical Report</a></li>
+                    <li class="nav-item"><a href="/education">Education</a></li>
+                </ul>
+                <button class="sync-btn" id="headerSyncBtn" title="Sync latest market data">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Sync Today's Data
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <h1 style="margin-bottom: 24px;">Monthly Macro Review: <span id="monthlyDateTitle" style="color: #6366f1; background: none; -webkit-text-fill-color: initial;">--/----</span></h1>
+            
+            <div class="dashboard-grid">
+                <!-- Asset price trends line chart -->
+                <div class="col-12 glass-card">
+                    <h2>Key Global Assets Trend (Normalized Multi-axis)</h2>
+                    <div class="chart-container" style="height: 380px;">
+                        <canvas id="monthlyAssetsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- FII/DII flow trends line chart -->
+                <div class="col-12 glass-card">
+                    <h2>Institutional Net Flows Trend (Cr)</h2>
+                    <div class="chart-container" style="height: 320px;">
+                        <canvas id="monthlyFlowsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly AI report -->
+                <div class="col-12 glass-card ai-report-container">
+                    <h2><span style="font-size: 22px;">✦</span> AI Monthly Macro Research Report</h2>
+                    <hr style="border-color: rgba(255, 255, 255, 0.05); margin: 16px 0;">
+                    <div class="ai-report-content" id="monthlyReportContent">
+                        Loading Monthly Macro Report...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/app.js"></script>
+    <script>
+        async function loadPageData() {
+            showLoader("Analyzing monthly macro data...");
+            try {
+                const now = new Date();
+                const month = now.getMonth() + 1; // 1-indexed
+                const year = now.getFullYear();
+                
+                const response = await fetch(`/api/data/archive/monthly?month=${month}&year=${year}`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Update Title Date
+                    const monthName = now.toLocaleString('default', { month: 'long' });
+                    document.getElementById('monthlyDateTitle').textContent = `${monthName} ${year}`;
+                    
+                    // Render Monthly Charts
+                    if (result.charts) {
+                        if (result.charts.assets) renderChart('monthlyAssetsChart', result.charts.assets, 'line');
+                        if (result.charts.flows) renderChart('monthlyFlowsChart', result.charts.flows, 'line');
+                    }
+                    
+                    // Render Monthly AI Report
+                    const reportHtml = markdownToHtml(result.monthly_report);
+                    document.getElementById('monthlyReportContent').innerHTML = reportHtml;
+                } else {
+                    document.getElementById('monthlyReportContent').innerHTML = `
+                        <p class="color-text-secondary" style="font-style: italic;">
+                            ${result.message}
+                        </p>
+                    `;
+                }
+            } catch (e) {
+                console.error("Error loading monthly analysis page:", e);
+                document.getElementById('monthlyReportContent').innerHTML = `
+                    <p class="color-text-secondary" style="font-style: italic;">
+                        Could not retrieve monthly analysis. Ensure that database runs have occurred during the selected month.
+                    </p>
+                `;
+            } finally {
+                hideLoader();
+            }
+        }
+        
+        window.addEventListener('DOMContentLoaded', loadPageData);
+    </script>
+</body>
+</html>
