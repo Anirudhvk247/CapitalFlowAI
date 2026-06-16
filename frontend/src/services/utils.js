@@ -1,5 +1,6 @@
 export function formatTickerValue(name, price) {
   if (price === null || price === undefined) return "--";
+  if (!name) return price.toLocaleString();
   
   if (name === "FII Net Flow" || name === "DII Net Flow" || name === "Total Net Flow") {
       const sign = price >= 0 ? "+₹" : "-₹";

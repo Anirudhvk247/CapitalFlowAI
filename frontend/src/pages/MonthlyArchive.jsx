@@ -44,10 +44,12 @@ const MonthlyArchive = ({ showLoader, hideLoader, showToast }) => {
       }
 
       const enabledDates = availableMonths.map(m => new Date(m.year, m.month - 1, 1));
+      const activeFlatpickr = typeof flatpickr === 'function' ? flatpickr : (flatpickr.default || flatpickr);
+      const activeMonthSelectPlugin = typeof monthSelectPlugin === 'function' ? monthSelectPlugin : (monthSelectPlugin.default || monthSelectPlugin);
 
-      fpRef.current = flatpickr(monthPickerRef.current, {
+      fpRef.current = activeFlatpickr(monthPickerRef.current, {
         plugins: [
-          new monthSelectPlugin({
+          new activeMonthSelectPlugin({
             shorthand: true,
             dateFormat: "Y-m",
             altFormat: "F Y",

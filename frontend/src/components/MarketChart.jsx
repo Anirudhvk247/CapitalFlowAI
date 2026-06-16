@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
-import { formatTickerValue } from './TickerGrid';
+import { formatTickerValue } from '../services/utils';
 
 const MarketChart = ({ canvasId, config, type = 'bar', isSparkline = false }) => {
   const canvasRef = useRef(null);

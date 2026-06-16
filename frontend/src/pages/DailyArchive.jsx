@@ -40,7 +40,8 @@ const DailyArchive = ({ showLoader, hideLoader, showToast }) => {
       if (fpRef.current) {
         fpRef.current.destroy();
       }
-      fpRef.current = flatpickr(datePickerRef.current, {
+      const activeFlatpickr = typeof flatpickr === 'function' ? flatpickr : (flatpickr.default || flatpickr);
+      fpRef.current = activeFlatpickr(datePickerRef.current, {
         dateFormat: "Y-m-d",
         defaultDate: selectedDate,
         enable: availableDates.length > 0 ? availableDates : undefined,
