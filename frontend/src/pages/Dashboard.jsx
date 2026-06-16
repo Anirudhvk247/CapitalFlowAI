@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import TickerGrid, { formatTickerValue } from '../components/TickerGrid';
+import TickerGrid from '../components/TickerGrid';
+import { formatTickerValue } from '../services/utils';
 import MarketChart from '../components/MarketChart';
 
 const Dashboard = ({ todayData }) => {

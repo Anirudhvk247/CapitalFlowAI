@@ -9,7 +9,7 @@ const api = axios.create({
   },
 });
 
-export const getTodayData = () => api.get('/data/today').then(res => res.data);
+export const getTodayData = (days) => api.get(days ? `/data/today?days=${days}` : '/data/today').then(res => res.data);
 
 export const getDailyArchive = (date) => api.get(`/data/archive/daily?date=${date}`).then(res => res.data);
 

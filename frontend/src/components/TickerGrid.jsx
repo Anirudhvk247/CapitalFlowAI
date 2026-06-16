@@ -1,9 +1,5 @@
 import React from 'react';
-import { formatTickerValue as formatUtil } from '../services/utils';
-
-export function formatTickerValue(name, price) {
-  return formatUtil(name, price);
-}
+import { formatTickerValue } from '../services/utils';
 
 const TickerGrid = ({ marketData, displayTickers }) => {
   if (!marketData) return null;

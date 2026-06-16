@@ -128,7 +128,7 @@ const MarketChart = ({ canvasId, config, type = 'bar', isSparkline = false }) =>
       };
     }
 
-    if (canvasId === 'monthlyAssetsChart') {
+    if (canvasId === 'monthlyAssetsChart' || canvasId === 'archiveMonthlyAssetsChart') {
       options.scales = {
         x: {
           grid: { color: 'rgba(255, 255, 255, 0.03)' },
