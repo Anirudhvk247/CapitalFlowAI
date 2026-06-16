@@ -2,13 +2,22 @@ import os
 import atexit
 from datetime import datetime
 from flask import Flask, render_template, jsonify, request
+from flask_cors import CORS
 import database
 import charts
 import scheduler
 import generate_daily_report
 import generate_monthly_report
 
-app = Flask(__name__, template_folder='frontend', static_folder='frontend', static_url_path='')
+frontend_dir = 'frontend/dist' if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend', 'dist')) else 'frontend'
+app = Flask(__name__, template_folder=frontend_dir, static_folder=frontend_dir, static_url_path='')
+CORS(app)
+
+def render_react_or_legacy(template_name):
+    if 'dist' in app.template_folder:
+        return render_template('index.html')
+    return render_template(template_name)
+
 
 # Initialize the database and scheduler on startup
 database.init_db()
@@ -367,43 +376,43 @@ Investing in global markets allows Indian retail investors to diversify geograph
 
 @app.route('/')
 def route_home():
-    return render_template('index.html')
+    return render_react_or_legacy('index.html')
 
 @app.route('/daily')
 def route_daily():
-    return render_template('daily.html')
+    return render_react_or_legacy('daily.html')
 
 @app.route('/monthly')
 def route_monthly():
-    return render_template('monthly.html')
+    return render_react_or_legacy('monthly.html')
 
 @app.route('/archive/daily')
 def route_archive_daily():
-    return render_template('archive_daily.html')
+    return render_react_or_legacy('archive_daily.html')
 
 @app.route('/archive/monthly')
 def route_archive_monthly():
-    return render_template('archive_monthly.html')
+    return render_react_or_legacy('archive_monthly.html')
 
 @app.route('/education')
 def route_education():
-    return render_template('education.html')
+    return render_react_or_legacy('education.html')
 
 @app.route('/education/markets-explained')
 def edu_markets():
-    return render_template('education_markets.html')
+    return render_react_or_legacy('education_markets.html')
 
 @app.route('/education/invest-globally')
 def edu_globally():
-    return render_template('education_globally.html')
+    return render_react_or_legacy('education_globally.html')
 
 @app.route('/education/macro-events')
 def edu_macro():
-    return render_template('education_macro.html')
+    return render_react_or_legacy('education_macro.html')
 
 @app.route('/education/hedging-diversification')
 def edu_hedging():
-    return render_template('education_hedging.html')
+    return render_react_or_legacy('education_hedging.html')
 
 # --- API Endpoints ---
 

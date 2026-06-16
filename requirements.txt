@@ -5,3 +5,6 @@ python-dotenv
 yfinance
 google-genai
 psycopg2-binary
+flask-cors
+
+# Frontend dependencies (e.g. flatpickr) are managed via npm in frontend/package.json
